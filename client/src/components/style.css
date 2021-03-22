@@ -32,3 +32,11 @@
   transform: translateX(200%);
   transition: transform 0.4s ease;
 }
+
+#screen {
+  height: calc(100vh - 60px);
+}
+.chat-box {
+  max-height: calc(76%);
+  overflow: scroll;
+}

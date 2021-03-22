@@ -22,7 +22,7 @@ const Navbar = () => {
     <>
       <div className='px-4 py-3 border-b'>
         <div className='bg-white'>
-          <div className='flex justify-between  items-center w-full'>
+          <div className='flex justify-between  items-center w-full '>
             <Link to='/'>
               <div className='flex items-center space-x-2'>
                 <Forum className='text-indigo-500 text-4xl' />

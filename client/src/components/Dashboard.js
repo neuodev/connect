@@ -30,7 +30,7 @@ const Dashboard = ({ history }) => {
       status: 'online',
     });
   }, [user]);
-  
+
   const activeUser = useSelector(state => state.activeUser);
   const activeGroup = useSelector(state => state.activeGroup);
 
@@ -39,20 +39,21 @@ const Dashboard = ({ history }) => {
   }, [dispatch]);
 
   return (
-    <div className='h-full '>
+    <div className='h-fulll h-screen ' id='screen'>
       <Navbar />
-
-      <div className='flex '>
+      <div className='flex h-full '>
         <Menu />
         <div className=' w-96 ' style={{ width: '600px' }}>
           <SideCol />
         </div>
-        <div className=' w-full h-full hidden md:block '>
+        <div className=' w-full h-full hidden   md:block  '>
           {activeUser || activeGroup ? (
-            <div>
+            <div className='h-full  relative border-l '>
               <Head />
               <Body />
-              <MessageBox />
+              <div className='absolute left-0 bottom-1 w-full'>
+                <MessageBox />
+              </div>
             </div>
           ) : (
             <div className=' w-full rounded-tl-lg bg-indigo-200  flex items-center justify-center h-screen '>

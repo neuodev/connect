@@ -30,12 +30,8 @@ const Body = () => {
   return (
     <div
       ref={messagesEndRef}
-      className='w-full h-full px-6  py-10 overflow-y-scroll  bg-white sha '
-      style={{
-        height: '660px',
-        boxShadow: 'inset 0px 2px 4px rgba(0,0,0,.2) ',
-      }}
-      id='scroll'>
+      className='w-full px-6  py-10 overflow-y-scroll  bg-white chat-box '
+      id='scroll' >
       {messages.map((message, idx) => (
         <Message message={message} key={idx} />
       ))}

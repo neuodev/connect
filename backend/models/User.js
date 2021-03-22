@@ -21,7 +21,10 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    match:[ /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i , 'Invalid Email'],
+    match: [
+      /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i,
+      'Invalid Email',
+    ],
     unique: [true, 'Email already exist'],
   },
   password: {
@@ -38,8 +41,7 @@ const userSchema = new mongoose.Schema({
       messages: [messageSchema],
       room: {
         type: String,
-        required: [true, 'Room Id is required'],
-        unique: true,
+        // required: [true, 'Room Id is required'],
       },
     },
   ],

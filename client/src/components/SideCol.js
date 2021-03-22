@@ -12,14 +12,16 @@ import './style.css';
 const SideCol = () => {
   const { chatOnSmallScreen } = useSelector(state => state.layouts);
   return (
-    <div className='  border-r relative '>
+    <div className='  border-r relative h-full '>
       <div
         className={`${
           chatOnSmallScreen ? 'showChatBox' : ' hideChatBox '
-        }  block md:hidden absolute top-0  h-full w-full z-40  `}>
+        }  block md:hidden absolute top-0  h-full w-full z-40 bg-white `}>
         <Head />
         <Body />
-        <MessageBox />
+        <div className='absolute bottom-1 left-0 w-full'>
+          <MessageBox />
+        </div>
       </div>
       <div className=' '>
         <Switch>

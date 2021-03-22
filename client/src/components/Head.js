@@ -41,7 +41,7 @@ const Head = () => {
   };
   return (
     <div className='flex items-center justify-between   '>
-      <div className='  w-full h-20  px-1 flex items-center bg-gray-100  '>
+      <div className='  w-full  px-1 flex items-center bg-gray-100  h-14 '>
         <div className='block md:hidden   '>
           <button
             className='border p-1 -pb-1 rounded-full focus:outline-none focus:ring-1 '

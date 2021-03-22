@@ -55,12 +55,12 @@ const Sidebar = () => {
   const chatBoxOut = () => {
     dispatch({ type: HIDE_CHAT_SMALL_SCREEN });
     dispatch(getGroups());
-  
   };
   return (
     <div
-      className='flex flex-col justify-center items-center w-16 h-full text-xl bg-white text-gray-400 border-r pr-3'
-      style={{ height: '807px' }}>
+      className='flex flex-col justify-center items-center w-16 h-full text-xl bg-white text-gray-400 border-r pr-3 '
+      // style={{ height: '807px' }}
+    >
       {sideBarList.map(item => (
         <Tooltip
           title={item.toolTip}
