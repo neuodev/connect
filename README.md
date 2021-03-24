@@ -5,4 +5,4 @@ I built this application because I was fascinated by sorting algorithms, and I w
 - Features: Prev and next buttons to control the steps, custom array sizes, custom sorting speed.  
 -  Applying Heap Sort, Insertion Sort, Selection Sort, Quick Sort, Merge Sort, Bubble Sort  
 
-![alt text](https://walletecommerce.herokuapp.com/images/sorting-visualizer.png)
+![alt text](https://walletecommerce.herokuapp.com/images/sorting visualizer.png)
