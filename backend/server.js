@@ -73,7 +73,7 @@ io.on('connection', socket => {
     const res = await updateUser(userId, data);
 
     socket.emit('updateUserResponse', res);
-  });
+  }); 
   // delete user from a group or delete the gorup if he is an admin
   socket.on('deleteGroup', async ({ userId, groupId }) => {
     const res = await leave_remove_group(groupId, userId);
