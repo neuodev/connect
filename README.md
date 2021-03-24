@@ -1,8 +1,14 @@
-# sorting-visualizer-
-Program made with React and Material-UI for visualizing sorting algorithms.  
-----
-I built this application because I was fascinated by sorting algorithms, and I wanted to visualize them in action. 
-- Features: Prev and next buttons to control the steps, custom array sizes, custom sorting speed.  
--  Applying Heap Sort, Insertion Sort, Selection Sort, Quick Sort, Merge Sort, Bubble Sort  
+ ## Connect
+ A Real-time chat application. 
 
-![alt text](https://walletecommerce.herokuapp.com/images/sorting%20visualizer.png)
+ - Built backend with Node + Express + Mongoose so non-relational database could propagate with scalable, diverse data. 
+
+ - Utilized React + Redux to render modal page forms that provide users an intuitive UI with components easy to maintain. 
+
+ - Features: Register an account and login, save data, join an existing group, or create your own group to communicate with everyone, chat                    privately with anyone and add them as friends, update user info, fully customizable, Easy to use, easy to use. 
+
+![alt text](https://walletecommerce.herokuapp.com/images/chat-app-1.png)
+
+![alt text](https://walletecommerce.herokuapp.com/images/chat-app-2.png)
+
+![alt text](https://walletecommerce.herokuapp.com/images/chat-app-3.png)
