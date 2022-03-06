@@ -12,8 +12,8 @@
 
 
 
-![Connect Messages Inbox](/client/public/images/chat-app-1.png)
+![Connect Home Page](/client/public/images/chat-app-1.png)
 
-![Inbox](https://walletecommerce.herokuapp.com/images/chat-app-2.png)
+![Connect Messages Inbox](/client/public/images/chat-app-2.png)
 
-![Group Chat](https://walletecommerce.herokuapp.com/images/chat-app-3.png)
+![Group Chat](/client/public/images/chat-app-3.png)
