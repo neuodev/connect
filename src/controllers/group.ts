@@ -92,7 +92,7 @@ export async function sendGroupMessage({
     // fromate the message
     const message: IMessage = {
       sender: sender,
-      receiver,
+      receiver: receiver.member,
       text,
     };
 
