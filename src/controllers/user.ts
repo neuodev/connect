@@ -1,43 +1,50 @@
 import User, { UserStatus } from "../models/User";
 import { v4 } from "uuid";
 import moment from "moment";
-import { getErrMsg } from "../utils/error";
+import { getErrMsg, errorHandler } from "../utils/error";
 
 export type Register = {
+  username: string;
   email: string;
   password: string;
 };
 
-export async function register(data: { email: string }) {
-  try {
-    const { email } = data;
-    const user = await User.findOne({ email });
-    if (user) {
-      return {
-        error: "User Already Exist",
-      };
-    } else {
-      const newUser = await User.create(data);
-      return {
-        success: true,
-        user: {
-          userId: newUser._id,
-          username: newUser.username,
-          friends: newUser.friends,
-          groups: newUser.groups,
-          email: newUser.email,
-          avatar: newUser.avatar,
-        },
-      };
-    }
-  } catch (err) {
-    return {
-      error: getErrMsg(err),
+export const register = errorHandler<
+  Register,
+  {
+    success: boolean;
+    user: {
+      userId: string;
+      username: string;
+      friends: any;
+      groups: any;
+      email: string;
+      avatar: string;
     };
   }
-}
+>(async (data) => {
+  const { email } = data;
+  const isExist = await User.findOne({ email });
+  if (isExist) throw new Error("User already exist");
+  const user = await User.create(data);
+  return {
+    success: true,
+    user: {
+      userId: user._id.toString(),
+      username: user.username,
+      friends: user.friends,
+      groups: user.groups,
+      email: user.email,
+      avatar: user.avatar,
+    },
+  };
+});
 
-export type Login = Register;
+export type Login = {
+  username: string;
+  email: string;
+  password: string;
+};
 
 export async function login(data: Login) {
   try {
