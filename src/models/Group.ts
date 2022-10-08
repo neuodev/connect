@@ -1,24 +1,24 @@
-const mongoose = require('mongoose');
-const messageSchema = require('./MessageSchema');
+const mongoose = require("mongoose");
+const messageSchema = require("./MessageSchema");
 
 const groupSchema = new mongoose.Schema(
   {
-    groupName: { type: String, requrie: [true, 'Group name is required'] },
+    groupName: { type: String, requrie: [true, "Group name is required"] },
     admin: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      requried: [true, 'Admin is required'],
+      ref: "User",
+      requried: [true, "Admin is required"],
     },
     room: {
       type: String,
-      required: [true, 'Room Id is required'],
+      required: [true, "Room Id is required"],
       unique: true,
     },
     members: [
       {
         member: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
+          ref: "User",
         },
       },
     ],
@@ -27,5 +27,5 @@ const groupSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Group = mongoose.model('Group', groupSchema);
-module.exports = Group;
+const Group = mongoose.model("Group", groupSchema);
+export default Group;

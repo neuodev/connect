@@ -1,18 +1,19 @@
-const mongoose = require('mongoose');
-const colors = require('colors');
+import mongoose from "mongoose";
+import "colors";
+import { getErrMsg } from "../utils/error";
+
 const connectDB = async () => {
+  let uri = process.env.MONGO_URI;
+
   try {
-    const con = await mongoose.connect(process.env.MONGO_URI, {
-      useCreateIndex: true,
-      useFindAndModify: false,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    if (!uri) throw new Error("Missing MongoDB URI");
+    const con = await mongoose.connect(uri);
     console.log(`Connected to MongoDB ${con.connection.host} `.bgGreen);
   } catch (err) {
-    console.log(`Error ${err.message}`.red.inverse);
+    let msg = getErrMsg(err);
+    console.log(msg.red.inverse);
     process.exit(1);
   }
 };
 
-module.exports = connectDB;
+export default connectDB;

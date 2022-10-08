@@ -1,17 +1,20 @@
-const http = require('http');
-const express = require('express');
-const socketio = require('socket.io');
-const path = require('path');
-const connectDB = require('./config/db');
-const fileUpload = require('express-fileupload');
-const {
+import http from "http";
+import express from "express";
+import socketio from "socket.io";
+import path from "path";
+import connectDB from "./config/db";
+import fileUpload from "express-fileupload";
+import "dotenv/config";
+
+import {
   setUserStatus,
   getUserStatus,
   unFriend,
   getUserById,
   updateUser,
-} = require('./controllers/user');
-const {
+} from "./controllers/user";
+
+import {
   createUser,
   login,
   getUsers,
@@ -19,71 +22,73 @@ const {
   getFriends,
   sendMessage,
   getMessages,
-} = require('./controllers/user');
-const {
+} from "./controllers/user";
+
+import {
   createGroup,
   getGoups,
   getGroupMessages,
   createGroupMessage,
   leave_remove_group,
-} = require('./controllers/group');
-const { uploadRouter } = require('./routes/upload');
-const dotenv = require('dotenv').config();
+} from "./controllers/group";
+
+import { uploadRouter } from "./routes/upload";
+
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
   cors: {
-    origin: ['http://localhost:3000'],
+    origin: ["http://localhost:3000"],
   },
 });
 // upload files
 app.use(fileUpload());
-app.use('/', uploadRouter);
+app.use("/", uploadRouter);
 const PORT = process.env.PORT || 5000;
 // connect to database
 connectDB();
 // serve files for production
-if (process.env.NODE_ENV === 'production') {
-  console.log('Server run in production');
-  app.use(express.static(path.join(__dirname, '../client/build')));
+if (process.env.NODE_ENV === "production") {
+  console.log("Server run in production");
+  app.use(express.static(path.join(__dirname, "../client/build")));
   // redirect if the user hit another api
-  app.get('*', (req, res) =>
-    res.sendFile(path.resolve(__dirname, '..', 'client', 'build', 'index.html'))
+  app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname, "..", "client", "build", "index.html"))
   );
 }
-io.on('connection', socket => {
+io.on("connection", (socket) => {
   //get user by Id
-  socket.on('getUserById', async userId => {
+  socket.on("getUserById", async (userId) => {
     const res = await getUserById(userId);
-    socket.emit('getUserByIdResponse', res);
+    socket.emit("getUserByIdResponse", res);
   });
   // get user status
-  socket.on('getUserStatus', async userId => {
+  socket.on("getUserStatus", async (userId) => {
     const status = await getUserStatus(userId);
-    socket.emit('userStatus', status);
+    socket.emit("userStatus", status);
     console.log(status);
   });
   // set user to active as it login
-  socket.on('setUserToActive', async ({ userId, status }) => {
+  socket.on("setUserToActive", async ({ userId, status }) => {
     const res = await setUserStatus(userId, status);
     console.log(res);
   });
   // update user
-  socket.on('updateUser', async ({ userId, data }) => {
+  socket.on("updateUser", async ({ userId, data }) => {
     const res = await updateUser(userId, data);
 
-    socket.emit('updateUserResponse', res);
-  }); 
+    socket.emit("updateUserResponse", res);
+  });
   // delete user from a group or delete the gorup if he is an admin
-  socket.on('deleteGroup', async ({ userId, groupId }) => {
+  socket.on("deleteGroup", async ({ userId, groupId }) => {
     const res = await leave_remove_group(groupId, userId);
 
     const groups = await getGoups(userId);
-    io.emit('getGroupsResponse', groups);
+    io.emit("getGroupsResponse", groups);
   });
 
   socket.on(
-    'chatMessage',
+    "chatMessage",
     async ({ friendId, userId, text, room, groupId }) => {
       if (!groupId) {
         const response = await sendMessage(friendId, userId, text);
@@ -91,95 +96,95 @@ io.on('connection', socket => {
         const messagesResponse = await getMessages(userId, friendId);
         // console.log(messagesResponse);
 
-        io.to(room).emit('message', messagesResponse);
+        io.to(room).emit("message", messagesResponse);
       } else {
         // send send message to group chat
         const res = await createGroupMessage(groupId, userId, text);
-        io.to(room).emit('message', res);
+        io.to(room).emit("message", res);
       }
     }
   );
   // register a user
-  socket.on('register', async data => {
+  socket.on("register", async (data) => {
     const response = await createUser(data);
-    socket.emit('registerResponse', response);
+    socket.emit("registerResponse", response);
     // update all users list
     const users = await getUsers();
-    socket.emit('getUsersResponse', users);
+    socket.emit("getUsersResponse", users);
   });
   // login
-  socket.on('login', async data => {
+  socket.on("login", async (data) => {
     console.log(data);
     const response = await login(data);
 
-    socket.emit('loginResponse', response);
+    socket.emit("loginResponse", response);
   });
 
   // send all users to the client
-  socket.on('getUsers', async () => {
+  socket.on("getUsers", async () => {
     const data = await getUsers();
-    socket.emit('getUsersResponse', data);
+    socket.emit("getUsersResponse", data);
   });
   // Add user as a friend
-  socket.on('addFriend', async ({ friendId, userId }) => {
+  socket.on("addFriend", async ({ friendId, userId }) => {
     // add friend
     const response = await addFriend(friendId, userId);
-    socket.emit('addFriendResponse', response);
+    socket.emit("addFriendResponse", response);
     // update client firends list
     const friendsResponse = await getFriends(userId);
-    io.emit('getFriendsResponse', friendsResponse);
+    io.emit("getFriendsResponse", friendsResponse);
   });
   // remove user from frined list
-  socket.on('removeFriend', async ({ userId, friendId }) => {
+  socket.on("removeFriend", async ({ userId, friendId }) => {
     // remove frined
     const res = await unFriend(userId, friendId);
     // send response back
-    socket.emit('removeFriendResponse', res);
+    socket.emit("removeFriendResponse", res);
     // update friend list
     const response = await getFriends(userId);
-    socket.emit('getFriendsResponse', response);
+    socket.emit("getFriendsResponse", response);
   });
   // get all friends
-  socket.on('getFriends', async userId => {
+  socket.on("getFriends", async (userId) => {
     const response = await getFriends(userId);
-    socket.emit('getFriendsResponse', response);
+    socket.emit("getFriendsResponse", response);
   });
 
   // join user & friend a room
-  socket.on('joinRoom', async ({ room, userId, friendId }) => {
+  socket.on("joinRoom", async ({ room, userId, friendId }) => {
     socket.join(room);
 
     // get messages assocated with this room
     const messagesResponse = await getMessages(userId, friendId);
 
-    io.to(room).emit('message', messagesResponse);
+    io.to(room).emit("message", messagesResponse);
   });
 
   //*****groups******
-  socket.on('createGroup', async data => {
+  socket.on("createGroup", async (data) => {
     const response = await createGroup(data);
-    socket.emit('createGroupResponse', response);
+    socket.emit("createGroupResponse", response);
     const groups = await getGoups(data.admin);
-    io.emit('getGroupsResponse', groups);
+    io.emit("getGroupsResponse", groups);
   });
   // get groups
-  socket.on('getGroups', async userId => {
+  socket.on("getGroups", async (userId) => {
     const groups = await getGoups(userId);
-    socket.emit('getGroupsResponse', groups);
+    socket.emit("getGroupsResponse", groups);
   });
   // user join room gorup
-  socket.on('joinRoomGroup', async ({ room, groupId }) => {
+  socket.on("joinRoomGroup", async ({ room, groupId }) => {
     socket.join(room);
 
     // get messages assocated with this room
     const messagesResponse = await getGroupMessages(groupId);
 
-    io.to(room).emit('message', messagesResponse);
+    io.to(room).emit("message", messagesResponse);
   });
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     //@set user state to inactive
-    console.log('A user has Left the chat ');
+    console.log("A user has Left the chat ");
   });
 });
 

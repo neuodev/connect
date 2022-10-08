@@ -1,14 +1,20 @@
-const User = require('../models/User');
-const { v4 } = require('uuid');
-const moment = require('moment');
+import User, { UserStatus } from "../models/User";
+import { v4 } from "uuid";
+import moment from "moment";
+import { getErrMsg } from "../utils/error";
 
-exports.createUser = async function (data) {
+export type Register = {
+  email: string;
+  password: string;
+};
+
+export async function register(data: { email: string }) {
   try {
     const { email } = data;
     const user = await User.findOne({ email });
     if (user) {
       return {
-        error: 'User Already Exist',
+        error: "User Already Exist",
       };
     } else {
       const newUser = await User.create(data);
@@ -26,24 +32,19 @@ exports.createUser = async function (data) {
     }
   } catch (err) {
     return {
-      error: err.message,
+      error: getErrMsg(err),
     };
   }
-};
+}
 
-exports.login = async function (data) {
+export type Login = Register;
+
+export async function login(data: Login) {
   try {
     const { email, password } = data;
     const user = await User.findOne({ email });
-    if (!user) {
-      return {
-        error: 'Please enter valid email and password ',
-      };
-    }
-    if (user.password.toString() !== password) {
-      return {
-        error: 'Please enter valid email and password ',
-      };
+    if (!user || user.password.toString() !== password) {
+      throw new Error("Please enter valid email and password");
     }
 
     return {
@@ -60,53 +61,58 @@ exports.login = async function (data) {
     };
   } catch (err) {
     return {
-      error: "can't find the user.",
+      error: getErrMsg(err),
     };
   }
-};
+}
 
-// get all users
-exports.getUsers = async function () {
+export async function getUsers() {
   try {
-    const users = await User.find({}).select('username email avatar');
-    if (!users) {
-      return {
-        error: 'No users founded',
-      };
-    }
-
+    const users = await User.find({}).select("username email avatar");
     const count = users.length;
-
     return { count, users };
   } catch (err) {
     return {
-      error: 'No Users Founded',
+      error: getErrMsg(err),
     };
   }
+}
+
+export type AddFriend = {
+  friendId: string;
+  userId: string;
 };
 
-exports.addFriend = async function (friendId, userId) {
+export async function addFriend({ friendId, userId }: AddFriend) {
   try {
-    if (!userId) return { error: 'Unauthorized to add friends' };
+    if (!userId) return { error: "Unauthorized to add friends" };
     const user = await User.findById(userId);
     const friend = await User.findById(friendId);
     // validate the users
-    if (!user || !friend) return { error: 'User Not found' };
+    if (!user || !friend) return { error: "User Not found" };
     // check if the user add himself
     if (userId === friendId)
       return { error: "Can't add youself as an a friend" };
     // check if they are already friends
     const isAreadyFriend = user.friends.find(
-      friend => friend.user.toString() === friendId
+      (friend) => friend.user?.toString() === friendId
     );
     if (isAreadyFriend)
       return {
-        error: 'You are already friends',
+        error: "You are already friends",
       };
     // add as friends
     const room = v4();
-    user.friends.push({ user: friend._id, room });
-    friend.friends.push({ user: user._id, room });
+    user.friends.push({
+      user: friend,
+      room,
+      messages: [],
+    });
+    friend.friends.push({
+      user: user,
+      room,
+      messages: [],
+    });
     await user.save();
     await friend.save();
 
@@ -114,18 +120,18 @@ exports.addFriend = async function (friendId, userId) {
       success: true,
     };
   } catch (error) {
-    return { error: error.message };
+    return { error: getErrMsg(error) };
   }
-};
-exports.getFriends = async function (userId) {
+}
+export async function getFriends(userId: string) {
   try {
-    if (!userId) return { error: 'Unauthorized to add friends' };
+    if (!userId) return { error: "Unauthorized to add friends" };
     const user = await User.findById(userId).populate({
-      path: 'friends.user',
-      select: 'username email avatar',
+      path: "friends.user",
+      select: "username email avatar",
     });
     // validate the user
-    if (!user) return { error: 'User Not found' };
+    if (!user) return { error: "User Not found" };
     const friends = user.friends;
 
     return {
@@ -133,43 +139,52 @@ exports.getFriends = async function (userId) {
       friends,
     };
   } catch (error) {
-    return { error: error.message };
+    return { error: getErrMsg(error) };
   }
+}
+
+export type SendMessage = {
+  friendId: string;
+  userId: string;
+  text: string;
 };
-exports.sendMessage = async function (friendId, userId, text) {
+
+export async function sendMessage({ friendId, userId, text }: SendMessage) {
   try {
-    if (!userId) return { error: 'Unauthorized to add friends' };
+    if (!userId) return { error: "Unauthorized to add friends" };
     const user = await User.findById(userId);
     const friend = await User.findById(friendId);
     // validate the users
-    if (!user) return { error: 'User Not found' };
-    if (!friend) return { error: 'Friend Not found' };
+    if (!user) return { error: "User Not found" };
+    if (!friend) return { error: "Friend Not found" };
     // check if the user add himself
     // check if they are already friends
     const isFriend = user.friends.find(
-      friend => friend.user.toString() === friendId
+      (friend) => friend.user.toString() === friendId
     );
     if (!isFriend)
       return {
         error: "Can't send Message to this user ",
       };
-    const time = moment().format('h:mm a');
+    const time = moment().format("h:mm a");
     // find the friend
     const findFriend = user.friends.find(
-      friend => friend.user.toString() === friendId
+      (friend) => friend.user.toString() === friendId
     );
+
     const message = {
       time,
       sender: user._id,
       receiver: friend._id,
       text,
     };
-    findFriend.messages.push(message);
+
+    findFriend?.messages.push(message);
     // find the user in the his friend set
     const findUser = friend.friends.find(
-      friend => friend.user.toString() === userId
+      (friend) => friend.user.toString() === userId
     );
-    findUser.messages.push(message);
+    findUser?.messages.push(message);
     await user.save();
     await friend.save();
 
@@ -177,34 +192,39 @@ exports.sendMessage = async function (friendId, userId, text) {
       success: true,
     };
   } catch (error) {
-    return { error: error.message };
+    return { error: getErrMsg(error) };
   }
+}
+
+export type GetMessages = {
+  userId: string;
+  friendId: string;
 };
 
-exports.getMessages = async (userId, friendId) => {
+export async function getMessages({ userId, friendId }: GetMessages) {
   try {
     const user = await User.findById(userId)
       .populate({
-        path: 'friends.messages.receiver',
-        select: 'username ',
+        path: "friends.messages.receiver",
+        select: "username ",
       })
       .populate({
-        path: 'friends.messages.sender',
-        select: 'username ',
+        path: "friends.messages.sender",
+        select: "username ",
       });
 
     if (!user) {
       return {
-        error: 'User Not Found',
+        error: "User Not Found",
       };
     }
 
     const friend = user.friends.find(
-      friend => friend.user.toString() === friendId
+      (friend) => friend.user.toString() === friendId
     );
     if (!friend) {
       return {
-        error: 'Friend Not Found',
+        error: "Friend Not Found",
       };
     }
     return {
@@ -213,16 +233,21 @@ exports.getMessages = async (userId, friendId) => {
     };
   } catch (error) {
     return {
-      error: error.message,
+      error: getErrMsg(error),
     };
   }
+}
+
+export type SetUserStatus = {
+  userId: string;
+  status: UserStatus;
 };
 
-exports.setUserStatus = async (userId, status) => {
+export async function setUserStatus({ userId, status }: SetUserStatus) {
   const user = await User.findById(userId);
   if (!user) {
     return {
-      error: 'User not found',
+      error: "User not found",
     };
   }
   user.status = status;
@@ -230,44 +255,50 @@ exports.setUserStatus = async (userId, status) => {
   return {
     success: true,
   };
-};
-exports.getUserStatus = async userId => {
+}
+
+export async function getUserStatus(userId: string) {
   const user = await User.findById(userId);
   if (!user) {
     return {
-      error: 'User not found',
+      error: "User not found",
     };
   }
 
   return user.status;
+}
+
+type RemoveFriend = {
+  userId: string;
+  friendId: string;
 };
 
-exports.unFriend = async (userId, friendId) => {
+export async function unFriend({ userId, friendId }: RemoveFriend) {
   try {
     const user = await User.findById(userId);
     if (!user) {
       return {
-        error: 'User not found',
+        error: "User not found",
       };
     }
     user.friends = user.friends.filter(
-      friend => friend.user.toString() !== friendId
+      (friend) => friend.user.toString() !== friendId
     );
     await user.save();
     return {
       success: true,
     };
   } catch (error) {
-    return { error: error.message };
+    return { error: getErrMsg(error) };
   }
-};
+}
 
-exports.getUserById = async userId => {
+export async function getUserById(id: string) {
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(id);
     if (!user) {
       return {
-        error: 'User Not Found',
+        error: "User Not Found",
       };
     }
     return {
@@ -284,20 +315,31 @@ exports.getUserById = async userId => {
     };
   } catch (error) {
     return {
-      error: error.message,
+      error: getErrMsg(error),
     };
   }
+}
+
+export type UpdateUser = {
+  userId: string;
+  username?: string;
+  email?: string;
+  oldPassword: string;
+  newPassword: string;
 };
 
-exports.updateUser = async (
+export async function updateUser({
   userId,
-  { username, email, oldPassword, newPassword }
-) => {
+  username,
+  email,
+  oldPassword,
+  newPassword,
+}: UpdateUser) {
   try {
     const user = await User.findById(userId);
     if (!user) {
       return {
-        error: 'User Not Found',
+        error: "User Not Found",
       };
     }
 
@@ -319,7 +361,7 @@ exports.updateUser = async (
     };
   } catch (error) {
     return {
-      error: error.message,
+      error: getErrMsg(error),
     };
   }
-};
+}
