@@ -1,9 +1,18 @@
-const mongoose = require("mongoose");
-const messageSchema = require("./MessageSchema");
+import mongoose, { ObjectId } from "mongoose";
+import messageSchema, { IMessage } from "./Message";
+import { IUser } from "./User";
+
+export interface IGroup {
+  name: string;
+  admin: IUser | ObjectId;
+  room: string;
+  members: Array<{ member: IUser | ObjectId }>;
+  messages: Array<IMessage>;
+}
 
 const groupSchema = new mongoose.Schema(
   {
-    groupName: { type: String, requrie: [true, "Group name is required"] },
+    name: { type: String, requrie: [true, "Group name is required"] },
     admin: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -27,5 +36,5 @@ const groupSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Group = mongoose.model("Group", groupSchema);
+const Group = mongoose.model<IGroup>("Group", groupSchema);
 export default Group;

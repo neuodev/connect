@@ -1,5 +1,5 @@
-import mongoose, { InferSchemaType, Model, ObjectId } from "mongoose";
-import messageSchema from "./MessageSchema";
+import mongoose, { ObjectId } from "mongoose";
+import messageSchema from "./Message";
 
 export enum UserStatus {
   Online = "online",
@@ -8,7 +8,7 @@ export enum UserStatus {
   Focusing = "focusing",
 }
 
-interface IUser {
+export interface IUser {
   username: string;
   avatar: string;
   email: string;

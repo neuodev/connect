@@ -15,7 +15,7 @@ import {
 } from "./controllers/user";
 
 import {
-  createUser,
+  register,
   login,
   getUsers,
   addFriend,

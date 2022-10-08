@@ -1,56 +1,59 @@
-const User = require('../models/User');
-const Group = require('../models/Group');
-const { v4 } = require('uuid');
-const moment = require('moment');
+import Group from "../models/Group";
+import { v4 as uuid } from "uuid";
+import moment from "moment";
+import { getErrMsg } from "../utils/error";
+import { IMessage } from "../models/Message";
+import User from "../models/User";
 
-exports.createGroup = async function (data) {
+export type CreateGroup = {
+  admin: string;
+  name: string;
+  members: Array<string>;
+};
+
+export async function createGroup(data: CreateGroup) {
   try {
-    const { groupMembers, groupName, admin } = data;
+    const { members, name, admin } = data;
     // group name mast be unique
     const alreadyExist = await Group.findOne({
-      $and: [{ admin }, { groupName }],
+      $and: [{ admin }, { name }],
     });
+
     if (alreadyExist) {
       return {
         error: "Can't create two groups with the same name",
       };
     }
-    const room = v4();
-    // add each member to the room
-    const group = await Group.create({ ...data, room });
-    for (let i = 0; i < groupMembers.length; i++) {
-      const member = groupMembers[i].friendId;
-      group.members.push({ member });
-    }
-    //save the changes
-    await group.save();
-
+    const room = uuid();
+    await Group.create({ name, room, admin, members });
     return { success: true };
   } catch (err) {
     return {
-      error: err.message,
+      error: getErrMsg(err),
     };
   }
-};
-exports.getGoups = async function (userId) {
+}
+export async function getGoups(userId: string) {
   try {
     const groups = await Group.find({
-      $or: [{ 'members.member': userId }, { admin: userId }],
-    }).populate({ path: 'members.member', select: 'username avatar ' });
+      $or: [{ "members.member": userId }, { admin: userId }],
+    }).populate({ path: "members.member", select: "username avatar " });
 
     return groups;
   } catch (err) {
     return {
-      error: err.message,
+      error: getErrMsg(err),
     };
   }
-};
-exports.getGroupMessages = async function (groupId) {
+}
+export async function getGroupMessages(groupId: string) {
   try {
     const groups = await Group.findById(groupId).populate({
-      path: 'messages.sender',
-      select: 'username',
+      path: "messages.sender",
+      select: "username",
     });
+
+    if (!groups) throw new Error("Group not found");
 
     return {
       success: true,
@@ -58,26 +61,37 @@ exports.getGroupMessages = async function (groupId) {
     };
   } catch (err) {
     return {
-      error: err.message,
+      error: getErrMsg(err),
     };
   }
+}
+
+export type SendGroupMessage = {
+  groupId: string;
+  userId: string;
+  text: string;
 };
-exports.createGroupMessage = async function (groupId, userId, text) {
+
+export async function sendGroupMessage({
+  groupId,
+  userId,
+  text,
+}: SendGroupMessage) {
   try {
     const group = await Group.findById(groupId);
     if (!group) {
       return {
-        error: 'Group Not found',
+        error: "Group Not found",
       };
     }
 
-    const time = moment().format('h:mm a');
     //get a reciver
-    const receiver = group.members[0].member;
+    const receiver = group.members[0];
+    const sender = await User.findOne({ id: userId });
+    if (!sender) throw new Error("User not found");
     // fromate the message
-    const message = {
-      time,
-      sender: userId,
+    const message: IMessage = {
+      sender: sender,
       receiver,
       text,
     };
@@ -86,31 +100,37 @@ exports.createGroupMessage = async function (groupId, userId, text) {
 
     await group.save();
     const groupMessages = await Group.findById(groupId).populate({
-      path: 'messages.sender',
-      select: 'username',
+      path: "messages.sender",
+      select: "username",
     });
 
     return {
       success: true,
-      messages: groupMessages.messages,
+      messages: groupMessages ? groupMessages.messages : [],
     };
   } catch (err) {
     return {
-      error: err.message,
+      error: getErrMsg(err),
     };
   }
+}
+
+export type RemoveMember = {
+  groupId: string;
+  userId: string;
 };
 
-exports.leave_remove_group = async function (groupId, userId) {
+export async function removeMember({ groupId, userId }: RemoveMember) {
   try {
     const group = await Group.findById(groupId);
+    if (!group) throw new Error("Group not found");
     //remove group if the user is admin
     if (group.admin.toString() === userId) {
       await Group.findByIdAndDelete(groupId);
     } else {
       // remove the user if  he is  a member
       group.members = group.members.filter(
-        member => member.member.toString() !== userId.toString()
+        (member) => member.member.toString() !== userId.toString()
       );
     }
     await group.save();
@@ -119,7 +139,7 @@ exports.leave_remove_group = async function (groupId, userId) {
     };
   } catch (err) {
     return {
-      error: err.message,
+      error: getErrMsg(err),
     };
   }
-};
+}
