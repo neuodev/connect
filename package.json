@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npm run build && node dist/server.js",
-    "server": "ts-node-dev --respawn src/server.ts",
+    "start": "npm run build && node dist/index.js",
+    "server": "ts-node-dev --respawn src/index.ts",
     "client": "npm start --prefix client",
     "build": "tsc --pretty"
   },
