@@ -12,6 +12,7 @@ import {
   getUserById,
   updateUser,
   removeFriend,
+  SetUserStatus,
 } from "./controllers/user";
 
 import {
@@ -61,21 +62,23 @@ if (environment.isProd()) {
 
 io.on(Event.Connect, (socket: Socket) => {
   if (environment.isDev()) console.log("Established new connection");
-  socket.on(Event.GetUser, async (userId) => {
+  socket.on(Event.GetUser, async (userId: string) => {
     const res = await getUserById(userId);
     socket.emit(Event.GetUser, res);
   });
 
-  socket.on(Event.GetUserStatus, async (userId) => {
+  socket.on(Event.GetUserStatus, async (userId: string) => {
     const status = await getUserStatus(userId);
     socket.emit(Event.GetUserStatus, status);
   });
 
-  // set user to active as it login
-  socket.on("setUserToActive", async (req) => {
-    const res = await setUserStatus(req);
-    console.log(res);
+  socket.on(Event.SetUserStatus, async (data: SetUserStatus) => {
+    const res = await setUserStatus(data);
+    const status = await getUserStatus(data.userId);
+    socket.emit(Event.SetUserStatus, res);
+    socket.emit(Event.GetUserStatus, status);
   });
+
   // update user
   socket.on("updateUser", async ({ userId, data }) => {
     const res = await updateUser({ userId, ...data });
