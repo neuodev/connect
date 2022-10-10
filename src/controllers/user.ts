@@ -2,6 +2,7 @@ import User, { UserStatus } from "../models/User";
 import { v4 } from "uuid";
 import moment from "moment";
 import { getErrMsg, errorHandler } from "../utils/error";
+import { cloneObj } from "../utils";
 
 export type Register = {
   username: string;
@@ -300,32 +301,15 @@ export async function removeFriend({ userId, friendId }: RemoveFriend) {
   }
 }
 
-export async function getUserById(id: string) {
-  try {
-    const user = await User.findById(id);
-    if (!user) {
-      return {
-        error: "User Not Found",
-      };
-    }
-    return {
-      success: true,
-      user: {
-        userId: user._id,
-        username: user.username,
-        friends: user.friends,
-        groups: user.groups,
-        email: user.email,
-        status: user.status,
-        avatar: user.avatar,
-      },
-    };
-  } catch (error) {
-    return {
-      error: getErrMsg(error),
-    };
-  }
-}
+export const getUserById = errorHandler(async (id: string) => {
+  const user = await User.findById(id);
+  if (!user) throw new Error("User Not Found");
+  const withoutPassword = cloneObj(user, ["password"]);
+  return {
+    success: true,
+    user: withoutPassword,
+  };
+});
 
 export type UpdateUser = {
   userId: string;

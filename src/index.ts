@@ -59,11 +59,11 @@ if (environment.isProd()) {
   );
 }
 
-io.on("connection", (socket: Socket) => {
+io.on(Event.Connect, (socket: Socket) => {
   if (environment.isDev()) console.log("Established new connection");
-  socket.on("getUserById", async (userId) => {
+  socket.on(Event.GetUser, async (userId) => {
     const res = await getUserById(userId);
-    socket.emit("getUserByIdResponse", res);
+    socket.emit(Event.GetUser, res);
   });
 
   socket.on("getUserStatus", async (userId) => {
@@ -115,9 +115,9 @@ io.on("connection", (socket: Socket) => {
     socket.emit(Event.GetUsers, users);
   });
 
-  socket.on("login", async (data) => {
+  socket.on(Event.Login, async (data) => {
     const response = await login(data);
-    socket.emit("loginResponse", response);
+    socket.emit(Event.Login, response);
   });
 
   socket.on(Event.GetUsers, async () => {
