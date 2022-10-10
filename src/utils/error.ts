@@ -9,7 +9,7 @@ export function getErrMsg(err: unknown): string {
   return msg;
 }
 
-export async function errorHandler<P, R>(func: (p: P) => Promise<R>) {
+export function errorHandler<P, R>(func: (p: P) => Promise<R>) {
   return async function call(params: P): Promise<R | { error: string }> {
     try {
       return await func(params);

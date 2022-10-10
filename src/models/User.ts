@@ -29,8 +29,8 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      required: [true, "Avatar is  Required"],
-      default: "/images/hero.jpg",
+      required: false,
+      default: null,
     },
     email: {
       type: String,
@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Userpassword is required"],
+      required: [true, "User password is required"],
       minLength: [6, "Password must be at least 6 chars"],
     },
     status: {
