@@ -232,19 +232,17 @@ export type SetUserStatus = {
   status: UserStatus;
 };
 
-export async function setUserStatus({ userId, status }: SetUserStatus) {
-  const user = await User.findById(userId);
-  if (!user) {
+export const setUserStatus = errorHandler<SetUserStatus, SuccessRes<{}>>(
+  async ({ userId, status }) => {
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
+    user.status = status;
+    await user.save();
     return {
-      error: "User not found",
+      success: true,
     };
   }
-  user.status = status;
-  await user.save();
-  return {
-    success: true,
-  };
-}
+);
 
 export const getUserStatus = errorHandler<
   string,
@@ -294,44 +292,36 @@ export type UpdateUser = {
   userId: string;
   username?: string;
   email?: string;
-  oldPassword: string;
-  newPassword: string;
+  oldPassword?: string;
+  newPassword?: string;
 };
 
-export async function updateUser({
-  userId,
-  username,
-  email,
-  oldPassword,
-  newPassword,
-}: UpdateUser) {
-  try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return {
-        error: "User Not Found",
-      };
-    }
+export const updateUser = errorHandler<
+  UpdateUser,
+  SuccessRes<{ user: IUserWithoutPassword }>
+>(async ({ userId, username, email, oldPassword, newPassword }) => {
+  console.log({
+    userId,
+    username,
+  });
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User Not Found");
 
-    user.username = username || user.username;
-    user.email = email || user.email;
+  user.username = username || user.username;
+  user.email = email || user.email;
 
-    if (oldPassword && newPassword) {
-      if (user.password.toString() === oldPassword) {
-        user.password = newPassword;
-      } else {
-        return {
-          error: "Passwords doesn't matches",
-        };
-      }
-    }
-    await user.save();
-    return {
-      success: true,
-    };
-  } catch (error) {
-    return {
-      error: getErrMsg(error),
-    };
+  if (newPassword) {
+    if (user.password.toString() !== oldPassword)
+      throw new Error("Passwords doesn't matches");
+
+    user.password = newPassword;
   }
-}
+
+  const updated = await user.save();
+  const withoutPassword = cloneObj(updated, ["password"]);
+
+  return {
+    success: true,
+    user: withoutPassword,
+  };
+});

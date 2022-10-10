@@ -13,6 +13,7 @@ import {
   updateUser,
   removeFriend,
   SetUserStatus,
+  UpdateUser,
 } from "./controllers/user";
 
 import {
@@ -79,10 +80,9 @@ io.on(Event.Connect, (socket: Socket) => {
     socket.emit(Event.GetUserStatus, status);
   });
 
-  // update user
-  socket.on("updateUser", async ({ userId, data }) => {
-    const res = await updateUser({ userId, ...data });
-    socket.emit("updateUserResponse", res);
+  socket.on(Event.UpdateUser, async (data: UpdateUser) => {
+    const res = await updateUser(data);
+    socket.emit(Event.UpdateUser, res);
   });
 
   // delete user from a group or delete the gorup if he is an admin
