@@ -1,8 +1,9 @@
-import User, { UserStatus } from "../models/User";
+import User, { IUserWithoutPassword, UserStatus } from "../models/User";
 import { v4 } from "uuid";
 import moment from "moment";
 import { getErrMsg, errorHandler } from "../utils/error";
 import { cloneObj } from "../utils";
+import { SuccessRes } from "../types";
 
 export type Register = {
   username: string;
@@ -14,30 +15,19 @@ export const register = errorHandler<
   Register,
   {
     success: boolean;
-    user: {
-      userId: string;
-      username: string;
-      friends: any;
-      groups: any;
-      email: string;
-      avatar: string;
-    };
+    user: IUserWithoutPassword;
   }
 >(async (data) => {
   const { email } = data;
   const isExist = await User.findOne({ email });
   if (isExist) throw new Error("User already exist");
+
   const user = await User.create(data);
+  const withoutPassword = cloneObj(user, ["password"]);
+
   return {
     success: true,
-    user: {
-      userId: user._id.toString(),
-      username: user.username,
-      friends: user.friends,
-      groups: user.groups,
-      email: user.email,
-      avatar: user.avatar,
-    },
+    user: withoutPassword,
   };
 });
 
@@ -47,32 +37,23 @@ export type Login = {
   password: string;
 };
 
-export async function login(data: Login) {
-  try {
-    const { email, password } = data;
-    const user = await User.findOne({ email });
-    if (!user || user.password.toString() !== password) {
-      throw new Error("Please enter valid email and password");
-    }
-
-    return {
-      success: true,
-      user: {
-        userId: user._id,
-        username: user.username,
-        friends: user.friends,
-        groups: user.groups,
-        email: user.email,
-        status: user.status,
-        avatar: user.avatar,
-      },
-    };
-  } catch (err) {
-    return {
-      error: getErrMsg(err),
-    };
+export const login = errorHandler<
+  Login,
+  SuccessRes<{ user: IUserWithoutPassword }>
+>(async (data) => {
+  const { email, password } = data;
+  const user = await User.findOne({ email });
+  if (!user || user.password.toString() !== password) {
+    throw new Error("Please enter valid email and password");
   }
-}
+
+  const withoutPassword = cloneObj(user, ["password"]);
+
+  return {
+    success: true,
+    user: withoutPassword,
+  };
+});
 
 export async function getUsers() {
   try {
@@ -265,16 +246,14 @@ export async function setUserStatus({ userId, status }: SetUserStatus) {
   };
 }
 
-export async function getUserStatus(userId: string) {
+export const getUserStatus = errorHandler<
+  string,
+  SuccessRes<{ status: UserStatus }>
+>(async (userId) => {
   const user = await User.findById(userId);
-  if (!user) {
-    return {
-      error: "User not found",
-    };
-  }
-
-  return user.status;
-}
+  if (!user) throw new Error("User not found");
+  return { success: true, status: user.status };
+});
 
 type RemoveFriend = {
   userId: string;

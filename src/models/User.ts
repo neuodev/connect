@@ -8,15 +8,18 @@ export enum UserStatus {
   Focusing = "focusing",
 }
 
-export interface IUser {
+export interface IUserWithoutPassword {
   username: string;
   avatar: string;
   email: string;
-  password: string;
   lastLogin: Date;
   status: UserStatus;
   friends: Array<{ user: ObjectId | IUser; messages: Array<{}>; room: string }>;
   groups: Array<ObjectId | IUser>;
+}
+
+export interface IUser extends IUserWithoutPassword {
+  password: string;
 }
 
 const userSchema = new mongoose.Schema(

@@ -66,10 +66,9 @@ io.on(Event.Connect, (socket: Socket) => {
     socket.emit(Event.GetUser, res);
   });
 
-  socket.on("getUserStatus", async (userId) => {
+  socket.on(Event.GetUserStatus, async (userId) => {
     const status = await getUserStatus(userId);
-    socket.emit("userStatus", status);
-    console.log(status);
+    socket.emit(Event.GetUserStatus, status);
   });
 
   // set user to active as it login
